@@ -264,6 +264,8 @@ export function combineReducers<State>(
 
 /// Since TypeScript cannot determine class types during runtime we have to use
 /// a type guard that looks for a tag, for example "remove_item"
+
+/// TODO: rethink this, should we extend a base class instead?
 interface IAction {
   action: string;
 }
