@@ -69,7 +69,7 @@ export interface ReducerClass<State> {
 ///       middleware: [loggingMiddleware],
 ///     );
 
-type Middleware<State> = (
+export type Middleware<State> = (
   store: Store<State>,
   action: any,
   next: NextDispatcher
@@ -155,14 +155,13 @@ export type NextDispatcher = (action: any) => void;
 export class Store<State> {
   /// The [Reducer] for your Store. Allows you to get the current reducer or
   /// replace it with a new one if need be.
-  public reducer: Reducer<State>;
 
   private _changeController: Subject<State>;
   private _state: State;
   private _dispatchers: NextDispatcher[];
 
-  Store(
-    reducer: Reducer<State>,
+  constructor(
+    public reducer: Reducer<State>,
     initialState: State,
     middleware: Middleware<State>[] = [],
     // syncStream: boolean = false,
@@ -177,6 +176,7 @@ export class Store<State> {
   ) {
     this._changeController = new Subject<State>();
     this._state = initialState;
+
     this._dispatchers = this._createDispatchers(
       middleware,
       this._createReduceAndNotify(distinct)

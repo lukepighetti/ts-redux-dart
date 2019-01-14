@@ -1,9 +1,9 @@
 import {
-  ReducerClass,
   MiddlewareClass,
-  Store,
   NextDispatcher,
-  Reducer
+  Reducer,
+  ReducerClass,
+  Store
 } from "./store";
 
 /// A convenience class for binding Reducers to Actions of a given Type. This
@@ -103,13 +103,9 @@ import {
 ///   new TypedReducer<AppState, ReverseItemAction>(reverseItemsReducer),
 /// ]);
 /// ```
-class TypedReducer<State, Action extends IAction>
+export class TypedReducer<State, Action extends IAction>
   implements ReducerClass<State> {
-  public reducer: (state: State, action: IAction) => State;
-
-  TypedReducer(reducer: (state: State, action: IAction) => State) {
-    this.reducer = reducer;
-  }
+  constructor(public reducer: (state: State, action: IAction) => State) {}
 
   call(state: State, action: any): State {
     if (_isAction(action)) {
@@ -216,23 +212,15 @@ class TypedReducer<State, Action extends IAction>
 ///   new TypedMiddleware<AppState, TodosLoadedAction>(saveItemsMiddleware),
 /// ];
 /// ```
-class TypedMiddleware<State, Action extends IAction>
+export class TypedMiddleware<State, Action extends IAction>
   implements MiddlewareClass<State> {
-  public middleware: (
-    store: Store<State>,
-    action: IAction,
-    next: NextDispatcher
-  ) => void;
-
-  TypedMiddleware(
-    middleware: (
+  constructor(
+    public middleware: (
       store: Store<State>,
       action: IAction,
       next: NextDispatcher
     ) => void
-  ) {
-    this.middleware = middleware;
-  }
+  ) {}
 
   call(store: Store<State>, action: any, next: NextDispatcher): void {
     if (_isAction(action)) {
@@ -263,7 +251,9 @@ class TypedMiddleware<State, Action extends IAction>
 ///       helloReducer,
 ///       friendReducer,
 ///     );
-function combineReducers<State>(reducers: Reducer<State>[]): Reducer<State> {
+export function combineReducers<State>(
+  reducers: Reducer<State>[]
+): Reducer<State> {
   return (state: State, action: any) => {
     for (const reducer of reducers) {
       state = reducer(state, action);
