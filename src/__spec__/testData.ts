@@ -37,3 +37,34 @@ export class IncrementMiddleware implements MiddlewareClass<string> {
     }
   }
 }
+
+export class ExtraActionIncrementMiddleware extends IncrementMiddleware {
+  public call = (
+    store: Store<string>,
+    action: any,
+    next: NextDispatcher
+  ): void => {
+    this.add(action);
+    this.counter += 1;
+    next(action);
+    next("another action");
+  };
+}
+
+export class ExtraActionIfDispatchedIncrementMiddleware extends IncrementMiddleware {
+  hasDispatched: boolean = false;
+
+  public call = (
+    store: Store<string>,
+    action: any,
+    next: NextDispatcher
+  ): void => {
+    this.add(action);
+    this.counter += 1;
+    next(action);
+    if (!this.hasDispatched) {
+      this.hasDispatched = true;
+      store.dispatch("another action");
+    }
+  };
+}
