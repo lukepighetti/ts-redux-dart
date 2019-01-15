@@ -69,11 +69,32 @@ export interface ReducerClass<State> {
 ///       middleware: [loggingMiddleware],
 ///     );
 
-export type Middleware<State> = (
+export type Middleware<State> =
+  | MiddlewareClass<State>
+  | MiddlewareFunction<State>;
+
+export type MiddlewareFunction<State> = ((
   store: Store<State>,
   action: any,
   next: NextDispatcher
-) => void;
+) => void);
+
+/// Since TypeScript cannot check types during runtime, and type guards apparently
+/// don't work for this case, we have a helper function that allows us to pass a
+/// MiddlewareClass or a MiddlewareFunction and have it return a MiddlewareFunction.
+
+/// History: In Dart, a call() method is sugar for a callable class, so they don't have to do any
+/// of this type checking. The compiler just figures it out at runtime.
+
+function switchMiddleware<State>(
+  middleware: Middleware<State>
+): MiddlewareFunction<State> {
+  if ((<MiddlewareClass<State>>middleware).call !== undefined) {
+    return (<MiddlewareClass<State>>middleware).call;
+  } else {
+    return <MiddlewareFunction<State>>middleware;
+  }
+}
 
 /// Defines a [Middleware] using a Class interface.
 ///
@@ -100,7 +121,7 @@ export type Middleware<State> = (
 ///     );
 
 export interface MiddlewareClass<State> {
-  call(store: Store<State>, action: any, next: NextDispatcher): void;
+  call: MiddlewareFunction<State>;
 }
 
 /// The contract between one piece of middleware and the next in the chain. Use
@@ -241,8 +262,9 @@ export class Store<State> {
     // Convert each [Middleware] into a [NextDispatcher]
     for (const nextMiddleware of middleware.reverse()) {
       const next = dispatchers[dispatchers.length - 1];
-
-      dispatchers.push((action: any) => nextMiddleware(this, action, next));
+      dispatchers.push((action: any) =>
+        switchMiddleware(nextMiddleware)(this, action, next)
+      );
     }
 
     return dispatchers.reverse();
